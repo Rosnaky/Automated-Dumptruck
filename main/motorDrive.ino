@@ -10,6 +10,8 @@
 #define in1B 7 
 #define in2B 6
 
+#define delayTime 20
+
 void setup() {
   Serial.begin(9600);
 	pinMode(enA, OUTPUT);
@@ -28,7 +30,7 @@ void loop() {
   analogWrite(enB, 255);
   digitalWrite(in1B, HIGH);
   digitalWrite(in2B, LOW);
-  delay(200);
+  delay(delayTime);
 
   analogWrite(enA, 255);
   digitalWrite(in1A, LOW);
@@ -37,7 +39,7 @@ void loop() {
   analogWrite(enB, 255);
   digitalWrite(in1B, HIGH);
   digitalWrite(in2B, LOW);
-  delay(200);
+  delay(delayTime);
 
   analogWrite(enA, 255);
   digitalWrite(in1A, LOW);
@@ -46,7 +48,7 @@ void loop() {
   analogWrite(enB, 255);
   digitalWrite(in1B, LOW);
   digitalWrite(in2B, HIGH);
-  delay(200);
+  delay(delayTime);
 
   analogWrite(enA, 255);
   digitalWrite(in1A, HIGH);
@@ -55,7 +57,7 @@ void loop() {
   analogWrite(enB, 255);
   digitalWrite(in1B, LOW);
   digitalWrite(in2B, HIGH);
-  delay(200);
+  delay(delayTime);
 }
 
 void setMotor(int en, int in1, int in2, int speed) {
