@@ -28,8 +28,8 @@ inline void motorSetSpeed(Motor* m, int stepsPerSecond) {
 }
 
 inline void motorSetSpeed(Motor* m, int stepsPerSecond, int acceleration) {
-	m->timeToTargetDelay = (stepsPerSecond - m->speed) / (acceleration);
-	m->acceleration = acceleration;
+	m->timeToTargetDelay = abs(stepsPerSecond - m->speed) / (acceleration);
+	m->acceleration = stepsPerSecond >= m.speed : acceleration : -acceleration;
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -60,12 +60,12 @@ void loop() {
 		digitalWrite(m.in1B, i < 2);
 		digitalWrite(m.in2B, !(i < 2));
 		delay(200 / m.speed);
-
-		if (m.timeToTargetDelay >= 0) {
-			m.speed += m.acceleration;
-			m.timeToTargetDelay-=1;
-		}
-
-		Serial.println(m.timeToTargetDelay);
 	}
+
+	if (m.timeToTargetDelay >= 0) {
+		m.speed += m.acceleration;
+		m.timeToTargetDelay--;
+	}
+
+	Serial.println(m.timeToTargetDelay);
 }
