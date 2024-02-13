@@ -1,6 +1,4 @@
-/*
-
-*/
+#include <util/delay.h>
 // Right motor
 #define enA 12
 #define in1A 11 
@@ -10,6 +8,10 @@
 #define in1B 7 
 #define in2B 6
 
+#define delayTime 20
+
+// 00 01 11 10
+
 void setup() {
   Serial.begin(9600);
 	pinMode(enA, OUTPUT);
@@ -18,49 +20,24 @@ void setup() {
 	pinMode(enB, OUTPUT);
 	pinMode(in1B, OUTPUT);
 	pinMode(in2B, OUTPUT);
+    analogWrite(enA, 255);
+    analogWrite(enB, 255);
 }
 
 void loop() {
-  analogWrite(enA, 255);
-  digitalWrite(in1A, HIGH);
-  digitalWrite(in2A, LOW);
-  
-  analogWrite(enB, 255);
-  digitalWrite(in1B, HIGH);
-  digitalWrite(in2B, LOW);
-  delay(200);
+  /*for (unsigned int i = 0; i < 4; i++) {
+      digitalWrite(in1A, i == 0);
+      digitalWrite(in2A, !(i == 0));
+      digitalWrite(in1B, i < 2);
+      digitalWrite(in2B, !(i < 2));
+      delay(delayTime);
+  }*/
 
-  analogWrite(enA, 255);
-  digitalWrite(in1A, LOW);
-  digitalWrite(in2A, HIGH);
-  
-  analogWrite(enB, 255);
-  digitalWrite(in1B, HIGH);
-  digitalWrite(in2B, LOW);
-  delay(200);
-
-  analogWrite(enA, 255);
-  digitalWrite(in1A, LOW);
-  digitalWrite(in2A, HIGH);
-  
-  analogWrite(enB, 255);
-  digitalWrite(in1B, LOW);
-  digitalWrite(in2B, HIGH);
-  delay(200);
-
-  analogWrite(enA, 255);
-  digitalWrite(in1A, HIGH);
-  digitalWrite(in2A, LOW);
-  
-  analogWrite(enB, 255);
-  digitalWrite(in1B, LOW);
-  digitalWrite(in2B, HIGH);
-  delay(200);
-}
-
-void setMotor(int en, int in1, int in2, int speed) {
-	digitalWrite(in1, speed < 0);
-	digitalWrite(in2, speed > 0);
-
-	analogWrite(en, abs(speed));
+  for (unsigned int i = 0; i < 4; i++) {
+      digitalWrite(in1A, i == 2);
+      digitalWrite(in2A, !(i == 2));
+      digitalWrite(in1B, !(i > 1));
+      digitalWrite(in2B, (i > 1));
+      delay(delayTime);
+  }
 }
