@@ -13,13 +13,23 @@ typedef struct {
 			unsigned char in1A, in2A, in1B, in2B;
 		};
 	};
-	unsigned int delay;
+	unsigned int speed;
+	unsigned int timeToTargetDelay;
+	unsigned int acceleration;
+
 } Motor;
 
-Motor m = {11, 10, 7, 6, 20};
+Motor m = {11, 10, 7, 6, 0};
 
-inline void motorSetSpeed(Motor* m, float stepsPerSecond) {
-	m->delay = 360 / stepsPerSecond;
+inline void motorSetSpeed(Motor* m, int stepsPerSecond) {
+	m->speed = stepsPerSecond;
+	m->acceleration = 0;
+	m->timeToTargetDelay = 0;
+}
+
+inline void motorSetSpeed(Motor* m, int stepsPerSecond, int acceleration) {
+	m->timeToTargetDelay = (stepsPerSecond - m->speed) / (acceleration);
+	m->acceleration = acceleration;
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -37,6 +47,10 @@ void setup() {
 	pinMode(m.in2B, OUTPUT);
 	analogWrite(enA, 255);
 	analogWrite(enB, 255);
+
+	motorSetSpeed(&m, 10);
+
+	Serial.begin(9600);
 }
 
 void loop() {
@@ -45,22 +59,13 @@ void loop() {
 		digitalWrite(m.in2A, !(i == 0 || i == 3));
 		digitalWrite(m.in1B, i < 2);
 		digitalWrite(m.in2B, !(i < 2));
-		delay(m.delay);
+		delay(200 / m.speed);
+
+		if (m.timeToTargetDelay >= 0) {
+			m.speed += m.acceleration;
+			m.timeToTargetDelay-=1;
+		}
+
+		Serial.println(m.timeToTargetDelay);
 	}
-
-	/*for (unsigned int i = 0; i < 4; i++) {
-		digitalWrite(in1A, i == 2);
-		digitalWrite(in2A, !(i == 2));
-		digitalWrite(in1B, (i > 1));
-		digitalWrite(in2B, !(i > 1));
-		delay(delayTime);
-	}*/
-
-	/*for (signed char i = 3; i >= 0; i++) {
-		digitalWrite(in1A, (i == 0));
-		digitalWrite(in2A, !(i == 0));
-		digitalWrite(in1B, (i < 2));
-		digitalWrite(in2B, !(i < 2));
-		delay(delayTime);
-	}*/
 }
