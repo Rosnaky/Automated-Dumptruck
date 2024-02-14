@@ -61,16 +61,6 @@ void setup() {
 	// Enable Interrupts
 	sei();
 
-	DDRB |= (1 << 5);
-	OCR1A = COUNTER_VALUE;
-	TCCR1A = 0x00;
-	TCCR1B |= (1 << WGM12); // CTC mode -- Compare to OCR1A
-	TCCR1B |= (1 << CS10) | (1 << CS12); // Set our prescaler value to 1024
-	TIMSK1 |= (1 << OCIE1A); // Tell the processor we want a interrupt
-
-	// Enable Interrupts
-	sei();
-
 	motorSetSpeed(&m, 100);
 
 	Serial.begin(9600);
