@@ -29,7 +29,7 @@ inline void motorSetSpeed(Motor* m, int stepsPerSecond) {
 
 inline void motorSetSpeed(Motor* m, int stepsPerSecond, int acceleration) {
 	m->timeToTargetDelay = abs(stepsPerSecond - m->speed) / (acceleration);
-	m->acceleration = stepsPerSecond >= m.speed : acceleration : -acceleration;
+	m->acceleration = stepsPerSecond >= m->speed ? acceleration : -acceleration;
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -48,24 +48,35 @@ void setup() {
 	analogWrite(enA, 255);
 	analogWrite(enB, 255);
 
-	motorSetSpeed(&m, 10);
+	motorSetSpeed(&m, 100);
 
 	Serial.begin(9600);
 }
 
+unsigned long curr = 0;
+
 void loop() {
-	for (signed int i = 3; i >= 0; i--) {
-		digitalWrite(m.in1A, i == 0 || i == 3);
-		digitalWrite(m.in2A, !(i == 0 || i == 3));
-		digitalWrite(m.in1B, i < 2);
-		digitalWrite(m.in2B, !(i < 2));
-		delay(200 / m.speed);
+	if (m.speed) {
+		for (signed int i = 3; i >= 0; i--) {
+			digitalWrite(m.in1A, i == 0 || i == 3);
+			digitalWrite(m.in2A, !(i == 0 || i == 3));
+			digitalWrite(m.in1B, i < 2);
+			digitalWrite(m.in2B, !(i < 2));
+			delay(200 / m.speed);
+		}
+	}
+	else {
+		digitalWrite(m.in1A, 0);
+		digitalWrite(m.in1B, 0);
+		digitalWrite(m.in2A, 1);
+		digitalWrite(m.in2B, 1);
 	}
 
-	if (m.timeToTargetDelay >= 0) {
+	if (m.timeToTargetDelay > 0 && curr*1000 <= millis()) {
 		m.speed += m.acceleration;
 		m.timeToTargetDelay--;
+		curr++;
 	}
 
-	Serial.println(m.timeToTargetDelay);
+	Serial.println(m.speed);
 }
