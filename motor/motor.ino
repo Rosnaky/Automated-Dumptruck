@@ -13,9 +13,9 @@ typedef struct {
 			unsigned char in1A, in2A, in1B, in2B;
 		};
 	};
-	unsigned int speed;
+	int speed;
 	unsigned int timeToTargetDelay;
-	unsigned int acceleration;
+	int acceleration;
 
 } Motor;
 
@@ -29,7 +29,7 @@ inline void motorSetSpeed(Motor* m, int stepsPerSecond) {
 
 inline void motorSetSpeed(Motor* m, int stepsPerSecond, int acceleration) {
 	m->timeToTargetDelay = abs(stepsPerSecond - m->speed) / (acceleration);
-	m->acceleration = stepsPerSecond >= m.speed ? acceleration : -acceleration;
+	m->acceleration = stepsPerSecond >= m->speed ? acceleration : -acceleration;
 }
 
 #define PRESCALER 10
@@ -62,6 +62,7 @@ void setup() {
 	sei();
 
 	motorSetSpeed(&m, 100);
+	motorSetSpeed(&m, -100, 10);
 
 	Serial.begin(9600);
 }
@@ -69,8 +70,17 @@ void setup() {
 unsigned long curr = 0;
 
 void loop() {
-	if (m.speed) {
+	if (m.speed > 0) {
 		for (signed int i = 3; i >= 0; i--) {
+			digitalWrite(m.in1A, i == 0 || i == 3);
+			digitalWrite(m.in2A, !(i == 0 || i == 3));
+			digitalWrite(m.in1B, i < 2);
+			digitalWrite(m.in2B, !(i < 2));
+			delay(200 / m.speed);
+		}
+	}
+	else if (m.speed < 0) {
+		for (signed int i = 0; i < 4; i++) {
 			digitalWrite(m.in1A, i == 0 || i == 3);
 			digitalWrite(m.in2A, !(i == 0 || i == 3));
 			digitalWrite(m.in1B, i < 2);
@@ -90,6 +100,7 @@ void loop() {
 		m.timeToTargetDelay--;
 		curr++;
 	}
+	else if (curr*1000 <= millis()) curr++;
 
 	Serial.println(m.speed);
 }
