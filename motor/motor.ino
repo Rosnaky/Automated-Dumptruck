@@ -29,12 +29,15 @@ inline void motorSetSpeed(Motor* m, int stepsPerSecond) {
 
 inline void motorSetSpeed(Motor* m, int stepsPerSecond, int acceleration) {
 	m->timeToTargetDelay = abs(stepsPerSecond - m->speed) / (acceleration);
-	m->acceleration = stepsPerSecond >= m->speed ? acceleration : -acceleration;
+	m->acceleration = stepsPerSecond >= m.speed ? acceleration : -acceleration;
 }
+
+#define PRESCALER 10
+#define COUNTER_VALUE (15998976 >> PRESCALER)
 
 ISR(TIMER1_COMPA_vect)
 {
-   PORTB ^= (1 << 0); // Toggle the LED
+	PORTB ^= (1 << 5);
 }
 
 void setup() {
@@ -47,6 +50,26 @@ void setup() {
 	pinMode(m.in2B, OUTPUT);
 	analogWrite(enA, 255);
 	analogWrite(enB, 255);
+
+	DDRB |= (1 << 5);
+	OCR1A = COUNTER_VALUE;
+	TCCR1A = 0x00;
+	TCCR1B |= (1 << WGM12); // CTC mode -- Compare to OCR1A
+	TCCR1B |= (1 << CS10) | (1 << CS12); // Set our prescaler value to 1024
+	TIMSK1 |= (1 << OCIE1A); // Tell the processor we want a interrupt
+
+	// Enable Interrupts
+	sei();
+
+	DDRB |= (1 << 5);
+	OCR1A = COUNTER_VALUE;
+	TCCR1A = 0x00;
+	TCCR1B |= (1 << WGM12); // CTC mode -- Compare to OCR1A
+	TCCR1B |= (1 << CS10) | (1 << CS12); // Set our prescaler value to 1024
+	TIMSK1 |= (1 << OCIE1A); // Tell the processor we want a interrupt
+
+	// Enable Interrupts
+	sei();
 
 	motorSetSpeed(&m, 100);
 
