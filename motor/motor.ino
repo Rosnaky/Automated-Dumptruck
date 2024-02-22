@@ -1,5 +1,3 @@
-
-
 typedef struct {
 	union {
 		unsigned char pins [6];
@@ -7,6 +5,7 @@ typedef struct {
 			unsigned char in1A, in2A, in1B, in2B, enA, enB;
 		};
 	};
+	int delay;
 	int speed;
 	unsigned int timeToTargetDelay;
 	int acceleration;
@@ -30,14 +29,14 @@ unsigned long curr = 0;
 
 void motorDrive(Motor* m) {
 	m->lastTick = millis();
-	if (m->speed > 0) {
+	if (m->delay > 0) {
 		int i = (--(m->state)+3)%4;
 		digitalWrite(m->in1A, i == 0 || i == 3);
 		digitalWrite(m->in2A, !(i == 0 || i == 3));
 		digitalWrite(m->in1B, i < 2);
 		digitalWrite(m->in2B, !(i < 2));
 	}
-	else if (m->speed < 0) {
+	else if (m->delay < 0) {
 		int i = ++(m->state) % 4;
 		digitalWrite(m->in1A, i == 0 || i == 3);
 		digitalWrite(m->in2A, !(i == 0 || i == 3));
@@ -45,42 +44,36 @@ void motorDrive(Motor* m) {
 		digitalWrite(m->in2B, !(i < 2));
 	}
 
-	if (m->timeToTargetDelay > 0 && curr*1000 <= millis()) {
+	/*if (m->timeToTargetDelay > 0 && curr*1000 <= millis()) {
 		m->speed += m->acceleration;
 		m->timeToTargetDelay--;
 		curr++;
 	}
-	else if (curr*1000 <= millis()) curr++;
+	else if (curr*1000 <= millis()) curr++;*/
 }
 
 void tankDrive(Motor* m, int size)
 {
 	for (int i = 0; i < size; i++)
 	{
-		if (m[i].speed == 0) {
-			digitalWrite(m[i].in1A, 0);
-			digitalWrite(m[i].in1B, 0);
-			digitalWrite(m[i].in2A, 1);
-			digitalWrite(m[i].in2B, 1);
-		}
-		else if ((millis() - m[i].lastTick) >= (200 / m[i].speed))
+		if ((millis() - m[i].lastTick) >= (m[i].delay))
 			motorDrive(&m[i]);
 	}
 }
 
 void motorInit(Motor* m, int size) {
 	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < 6; j++) pinMode(m[i].pins[j], OUTPUT);
-		
+		for (int j = 0; j < 6; j++)
+			pinMode(m[i].pins[j], OUTPUT);
+
 		digitalWrite(m->enA, HIGH);
 		digitalWrite(m->enB, HIGH);
 	}
-	
 }
 
 Motor motors[] = {
-	{23, 24, 27, 28, 22, 26},
-	{11, 10, 7, 6, 12, 8}
+	{23, 24, 27, 28, 22, 26, 1},
+	{11, 10, 7, 6, 12, 8, 1}
 };
 
 void setup() {
@@ -88,7 +81,7 @@ void setup() {
 	motorInit(motors, 2);
 
 	motorSetSpeed(&motors[0], 100);
-	motorSetSpeed(&motors[1], 100);
+	motorSetSpeed(&motors[1], -100);
 
 	pinMode(11, OUTPUT);
 	pinMode(7, OUTPUT);
@@ -102,9 +95,5 @@ void setup() {
 }
 
 void loop() {
-  
   tankDrive(motors, 2);
-// 	motorDrive(&motors[0]);
-// 	motorDrive(&motors[1]);
-	// delay(20);
 }
