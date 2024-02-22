@@ -7,52 +7,40 @@ typedef struct {
 	};
 	long delay;
 	long desiredDelay;
-	int acceleration;
-	unsigned int state;
 	unsigned long lastTick;
-
+	int acceleration;
+	unsigned char state;
 } Motor;
 
-inline void motorSetSpeed(Motor* m, int delay) {
-	m->delay = delay;
+inline void motorSetDelay(Motor* m, long delay) {
+	m->delay = m->desiredDelay = delay;
 	m->acceleration = 0;
-	m->desiredDelay = delay;
 }
 
-inline void motorSetSpeed(Motor* m, int desiredDelay, int acceleration) {
+inline void motorSetDelay(Motor* m, int desiredDelay, int acceleration) {
 	m->desiredDelay = desiredDelay;
-	m->acceleration = delay >= m->delay ? acceleration : -acceleration;
+	m->acceleration = desiredDelay >= m->delay ? acceleration : -acceleration;
 }
-
 
 void motorDrive(Motor* m) {
 	m->lastTick = micros();
-	if (m->delay > 0) {
-		int i = (--(m->state)+3)%4;
-		digitalWrite(m->in1A, i == 0 || i == 3);
-		digitalWrite(m->in2A, !(i == 0 || i == 3));
-		digitalWrite(m->in1B, i < 2);
-		digitalWrite(m->in2B, !(i < 2));
-	}
-	else if (m->delay < 0) {
-		int i = ++(m->state) % 4;
-		digitalWrite(m->in1A, i == 0 || i == 3);
-		digitalWrite(m->in2A, !(i == 0 || i == 3));
-		digitalWrite(m->in1B, i < 2);
-		digitalWrite(m->in2B, !(i < 2));
-	}
+	if (m->delay > 0)
+		++m->state %= 4;
+	else if (m->delay < 0)
+		--m->state %= 4;
+	digitalWrite(m->in1A, m->state == 0 || m->state == 3);
+	digitalWrite(m->in2A, !(m->state == 0 || m->state == 3));
+	digitalWrite(m->in1B, m->state < 2);
+	digitalWrite(m->in2B, !(m->state < 2));
 
 	if (m->delay != m->desiredDelay) 
 		m->delay += m->acceleration;
 }
 
-void tankDrive(Motor* m, int size)
-{
+void tankDrive(Motor* m, int size) {
 	for (int i = 0; i < size; i++)
-	{
 		if ((micros() - m[i].lastTick) >= (m[i].delay))
 			motorDrive(&m[i]);
-	}
 }
 
 void motorInit(Motor* m, int size) {
@@ -74,20 +62,10 @@ void setup() {
 	Serial.begin(9600);
 	motorInit(motors, 2);
 
-	motorSetSpeed(&motors[0], 100);
-	motorSetSpeed(&motors[1], -100);
-
-	pinMode(11, OUTPUT);
-	pinMode(7, OUTPUT);
-	pinMode(6, OUTPUT);
-	pinMode(12, OUTPUT);
-	pinMode(10, OUTPUT);
-	pinMode(8, OUTPUT);
-
-	digitalWrite(12, HIGH);
-	digitalWrite(8, HIGH);
+	motorSetDelay(motors, 100);
+	motorSetDelay(motors + 1, -100);
 }
 
 void loop() {
-  tankDrive(motors, 2);
+	tankDrive(motors, 2);
 }
