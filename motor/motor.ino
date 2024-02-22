@@ -6,26 +6,24 @@ typedef struct {
 		};
 	};
 	long delay;
-	int speed;
-	unsigned int timeToTargetDelay;
+	long desiredDelay;
 	int acceleration;
 	unsigned int state;
 	unsigned long lastTick;
 
 } Motor;
 
-inline void motorSetSpeed(Motor* m, int stepsPerSecond) {
-	m->speed = stepsPerSecond;
+inline void motorSetSpeed(Motor* m, int delay) {
+	m->delay = delay;
 	m->acceleration = 0;
-	m->timeToTargetDelay = 0;
+	m->desiredDelay = delay;
 }
 
-inline void motorSetSpeed(Motor* m, int stepsPerSecond, int acceleration) {
-	m->timeToTargetDelay = abs(stepsPerSecond - m->speed) / (acceleration);
-	m->acceleration = stepsPerSecond >= m->speed ? acceleration : -acceleration;
+inline void motorSetSpeed(Motor* m, int desiredDelay, int acceleration) {
+	m->desiredDelay = desiredDelay;
+	m->acceleration = delay >= m->delay ? acceleration : -acceleration;
 }
 
-unsigned long curr = 0;
 
 void motorDrive(Motor* m) {
 	m->lastTick = micros();
@@ -44,12 +42,8 @@ void motorDrive(Motor* m) {
 		digitalWrite(m->in2B, !(i < 2));
 	}
 
-	/*if (m->timeToTargetDelay > 0 && curr*1000 <= micros()) {
-		m->speed += m->acceleration;
-		m->timeToTargetDelay--;
-		curr++;
-	}
-	else if (curr*1000 <= micros()) curr++;*/
+	if (m->delay != m->desiredDelay) 
+		m->delay += m->acceleration;
 }
 
 void tankDrive(Motor* m, int size)
