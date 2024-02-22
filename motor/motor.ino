@@ -5,7 +5,7 @@ typedef struct {
 			unsigned char in1A, in2A, in1B, in2B, enA, enB;
 		};
 	};
-	int delay;
+	long delay;
 	int speed;
 	unsigned int timeToTargetDelay;
 	int acceleration;
@@ -28,7 +28,7 @@ inline void motorSetSpeed(Motor* m, int stepsPerSecond, int acceleration) {
 unsigned long curr = 0;
 
 void motorDrive(Motor* m) {
-	m->lastTick = millis();
+	m->lastTick = micros();
 	if (m->delay > 0) {
 		int i = (--(m->state)+3)%4;
 		digitalWrite(m->in1A, i == 0 || i == 3);
@@ -44,19 +44,19 @@ void motorDrive(Motor* m) {
 		digitalWrite(m->in2B, !(i < 2));
 	}
 
-	/*if (m->timeToTargetDelay > 0 && curr*1000 <= millis()) {
+	/*if (m->timeToTargetDelay > 0 && curr*1000 <= micros()) {
 		m->speed += m->acceleration;
 		m->timeToTargetDelay--;
 		curr++;
 	}
-	else if (curr*1000 <= millis()) curr++;*/
+	else if (curr*1000 <= micros()) curr++;*/
 }
 
 void tankDrive(Motor* m, int size)
 {
 	for (int i = 0; i < size; i++)
 	{
-		if ((millis() - m[i].lastTick) >= (m[i].delay))
+		if ((micros() - m[i].lastTick) >= (m[i].delay))
 			motorDrive(&m[i]);
 	}
 }
@@ -72,8 +72,8 @@ void motorInit(Motor* m, int size) {
 }
 
 Motor motors[] = {
-	{23, 24, 27, 28, 22, 26, 1},
-	{11, 10, 7, 6, 12, 8, 1}
+	{23, 24, 27, 28, 22, 26, 5000},
+	{11, 10, 7, 6, 12, 8, 5000}
 };
 
 void setup() {
