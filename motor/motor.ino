@@ -39,14 +39,14 @@ void motorStep(Motor* m) {
 	digitalWrite(m->in1B, i < 2);
 	digitalWrite(m->in2B, !(i < 2));
 
-	if (m->delay != m->desiredDelay) 
-		m->delay += m->acceleration;
+	//if (m->delay != m->desiredDelay) 
+	//	m->delay += m->acceleration;
 }
 
 // Loops through each motor and executes their steps if enough time has passed since the last update
 void tankStep(Motor* m, int size) {
 	for (int i = 0; i < size; i++)
-		if ((micros() - m[i].lastTick) >= (m[i].delay))
+		if ((micros() - m[i].lastTick) >= abs(m[i].delay))
 			motorStep(&m[i]);
 }
 
@@ -63,8 +63,8 @@ void motorInit(Motor* m, int size) {
 
 // Our array of Motor structs
 Motor motors[] = {
-	{12, 11, 10, 9, 13, 8, 5000},
 	{23, 24, 27, 28, 22, 26, 5000},
+	{12, 11, 10, 9, 13, 8, 5000},
 };
 
 void setup() {
