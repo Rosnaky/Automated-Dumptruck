@@ -2,7 +2,7 @@
 typedef struct {
 	union {                                                  // Using a union with an array so we can also loop through it
 		unsigned char pins [6];                              // An array of the 6 pins we need
-		struct {                                             // We wrap the pins together in their own anonymouse struct
+		struct {                                             // We wrap the pins together in their own anonymous struct
 			unsigned char in1A, in2A, in1B, in2B, enA, enB;  // This gets mapped to the same place in memory as the array
 		};
 	};
@@ -39,8 +39,8 @@ void motorStep(Motor* m) {
 	digitalWrite(m->in1B, i < 2);
 	digitalWrite(m->in2B, !(i < 2));
 
-	//if (m->delay != m->desiredDelay) 
-	//	m->delay += m->acceleration;
+	if (m->delay != m->desiredDelay) 
+		m->delay += m->acceleration;
 }
 
 // Loops through each motor and executes their steps if enough time has passed since the last update
