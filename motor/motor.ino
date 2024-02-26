@@ -33,7 +33,7 @@ void motorStep(Motor* m) {
 		++m->state;
 	else if (m->delay < 0)
 		--m->state;
-	int i = m->state % 4;
+	int i = m->state & 0b11;
 	digitalWrite(m->in1A, i == 0 || i == 3);
 	digitalWrite(m->in2A, !(i == 0 || i == 3));
 	digitalWrite(m->in1B, i < 2);
