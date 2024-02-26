@@ -6,8 +6,8 @@ typedef struct {
 			unsigned char in1A, in2A, in1B, in2B, enA, enB;  // This gets mapped to the same place in memory as the array
 		};
 	};
-	long delay;                                              // Our current delay
-	long desiredDelay;                                       // The delay we want to get to / the delay we are accelerating to
+	signed long delay;                                       // Our current delay
+	signed long desiredDelay;                                // The delay we want to get to / the delay we are accelerating to
 	unsigned long lastTick;                                  // The last time the motor magnets changed their polarity (This is used to time the steps)
 	int acceleration;                                        // Our rate of acceleration. (Usually 1)
 	unsigned char state;                                     // The current step position we are in (We can use this to determine the next step)
@@ -30,13 +30,14 @@ inline void motorSetDelay(Motor* m, int desiredDelay, int acceleration) {
 void motorStep(Motor* m) {
 	m->lastTick = micros();
 	if (m->delay > 0)
-		++m->state %= 4;
+		++m->state;
 	else if (m->delay < 0)
-		--m->state %= 4;
-	digitalWrite(m->in1A, m->state == 0 || m->state == 3);
-	digitalWrite(m->in2A, !(m->state == 0 || m->state == 3));
-	digitalWrite(m->in1B, m->state < 2);
-	digitalWrite(m->in2B, !(m->state < 2));
+		--m->state;
+	int i = m->state % 4;
+	digitalWrite(m->in1A, i == 0 || i == 3);
+	digitalWrite(m->in2A, !(i == 0 || i == 3));
+	digitalWrite(m->in1B, i < 2);
+	digitalWrite(m->in2B, !(i < 2));
 
 	if (m->delay != m->desiredDelay) 
 		m->delay += m->acceleration;
@@ -55,22 +56,23 @@ void motorInit(Motor* m, int size) {
 		for (int j = 0; j < 6; j++)
 			pinMode(m[i].pins[j], OUTPUT);
 
-		digitalWrite(m->enA, HIGH);
-		digitalWrite(m->enB, HIGH);
+		digitalWrite(m[i].enA, HIGH);
+		digitalWrite(m[i].enB, HIGH);
 	}
 }
 
+// Our array of Motor structs
 Motor motors[] = {
+	{12, 11, 10, 9, 13, 8, 5000},
 	{23, 24, 27, 28, 22, 26, 5000},
-	{11, 10, 7, 6, 12, 8, 5000}
 };
 
 void setup() {
 	Serial.begin(9600);
 	motorInit(motors, 2);
 
-	motorSetDelay(motors, 100);
-	motorSetDelay(motors + 1, -100);
+	motorSetDelay(motors, 5000);
+	motorSetDelay(&motors[1], -5000);
 }
 
 void loop() {
