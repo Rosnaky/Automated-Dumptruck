@@ -62,9 +62,9 @@ void fixSpeeds(int countA, int countB) {
     speedA = (countA-predictedA) > 0 ? speedA -= ceil(abs(countA-predictedA)/5.0/maxWheelSpeed*255.0) :
     speedA += ceil(abs(countA-predictedA)/5.0/maxWheelSpeed*255.0);
   }
-  if (abs(countA-predictedA) > error) {
-    speedA = (countA-predictedA) > 0 ? speedA -= ceil(abs(countA-predictedA)/5.0/maxWheelSpeed*255.0) :
-    speedA += ceil(abs(countA-predictedA)/5.0/maxWheelSpeed*255.0);
+  if (abs(countB-predictedB) > error) {
+    speedB = (countB-predictedB) > 0 ? speedB -= ceil(abs(countB-predictedB)/5.0/maxWheelSpeed*255.0) :
+    speedB += ceil(abs(countB-predictedB)/5.0/maxWheelSpeed*255.0);
   }
   
   
