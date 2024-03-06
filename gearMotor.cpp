@@ -16,8 +16,50 @@ int encoderB = 10;
 
 int speedA = 0, speedB = 0;
 int direction = 0, speed = 0;
-int maxWheelSpeed = 0;
+int maxWheelSpeed = 100;
 
+void getMaxWheelSpeed() {
+  unsigned long start = millis();
+  int countA = 0;
+  int prevA = 0;
+  
+  int countB = 0;
+  int prevB = 0;
+  
+  analogWrite(enA, 255);
+  analogWrite(enB, 255);
+  digitalWrite(in1A, 1);
+  digitalWrite(in2A, 0);
+  digitalWrite(in1B, 0);
+  digitalWrite(in2B, 1);
+
+  unsigned long current = start;
+  
+  while (current - start < 1000) {
+    int nextA = digitalRead(10);
+    int nextB = digitalRead(11);
+    
+    if (nextA != prevA) {
+      prevA = nextA;
+      countA += prevA;
+    }
+    if (nextB != prevB) {
+      prevB = nextB;
+      countB += prevB;
+    }
+    
+    
+    current = millis();
+  }
+  
+  maxWheelSpeed = min(countA, countB);
+  Serial.println(maxWheelSpeed);
+}
+
+/* 
+Direction is angle in degrees from North to intended direction
+Speed is scalar value from 0 to 255
+*/
 void setSpeed(int d, int s) {
   direction = d;
   speed = s;
@@ -79,10 +121,6 @@ void fixSpeeds(int countA, int countB) {
   Serial.println("");
 }
 
-/* 
-Direction is angle in degrees from North to intended direction
-Speed is scalar value from 0 to 255
-*/
 void driveTank() {
   unsigned long start = millis();
   int countA = 0;
@@ -137,6 +175,17 @@ void driveTank() {
   fixSpeeds(countA, countB);
 }
 
+void driveTankForTime(double seconds) {
+  unsigned long start = millis();
+  
+  while (millis()-start < seconds*1000) {
+    driveTank();
+  }
+  
+  setSpeed(0, 0);
+  driveTank();
+}
+
 void setup() {
   pinMode(in1A, OUTPUT);
   pinMode(in2A, OUTPUT);
@@ -149,49 +198,19 @@ void setup() {
   pinMode(enB, OUTPUT);
 
   Serial.begin(9600);
-    
-  unsigned long start = millis();
-  int countA = 0;
-  int prevA = 0;
   
-  int countB = 0;
-  int prevB = 0;
   
-  analogWrite(enA, 255);
-  analogWrite(enB, 255);
-  digitalWrite(in1A, 1);
-  digitalWrite(in2A, 0);
-  digitalWrite(in1B, 0);
-  digitalWrite(in2B, 1);
+  driveRoutine();
+}
 
-  unsigned long current = start;
-  
-  while (current - start < 1000) {
-    int nextA = digitalRead(10);
-    int nextB = digitalRead(11);
-    
-    if (nextA != prevA) {
-      prevA = nextA;
-      countA += prevA;
-    }
-    if (nextB != prevB) {
-      prevB = nextB;
-      countB += prevB;
-    }
-    
-    
-    current = millis();
-  }
-  
-  maxWheelSpeed = min(countA, countB);
-  Serial.println(maxWheelSpeed);
-    
-    
+void driveRoutine() {
   setSpeed(0, 100);
+  driveTankForTime(3);
 }
 
 void loop() {
   
-  driveTank();
+  
+  // driveTank();
   
 }
