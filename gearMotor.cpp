@@ -35,7 +35,7 @@ void setSpeed(int d, int s) {
 }
 
 void fixSpeeds(int countA, int countB) {
-  int error = 5;
+  int error = 3;
   
   int x = speed*sin(direction*3.14/180.0);
   int y = speed*cos(direction*3.14/180.0);
@@ -103,12 +103,12 @@ void driveTank() {
   }
   
   if (speedB > 0) {
-    digitalWrite(in1B, 1);
-    digitalWrite(in2B, 0);
-  }
-  else {
     digitalWrite(in1B, 0);
     digitalWrite(in2B, 1);
+  }
+  else {
+    digitalWrite(in1B, 1);
+    digitalWrite(in2B, 0);
   }
   
   unsigned long current = start;
@@ -161,8 +161,8 @@ void setup() {
   analogWrite(enB, 255);
   digitalWrite(in1A, 1);
   digitalWrite(in2A, 0);
-  digitalWrite(in1B, 1);
-  digitalWrite(in2B, 0);
+  digitalWrite(in1B, 0);
+  digitalWrite(in2B, 1);
 
   unsigned long current = start;
   
