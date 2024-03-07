@@ -2,21 +2,25 @@
 
 */
 
-int in1A = 13;
-int in2A = 12;
-int enA = 5;
+int in1B = 13;
+int in2B = 12;
+int enB = 5;
 
-int in1B = 9;
-int in2B = 8;
-int enB = 6;
+int in1A = 9;
+int in2A = 8;
+int enA = 6;
 
 int encoderA = 11;
 int encoderB = 10;
 
 
 int speedA = 0, speedB = 0;
-int direction = 0, speed = 0;
+double direction = 0;
+int speed = 0;
 int maxWheelSpeed = 100;
+
+const int numSlits = 20;
+
 
 void getMaxWheelSpeed() {
   unsigned long start = millis();
@@ -60,19 +64,26 @@ void getMaxWheelSpeed() {
 Direction is angle in degrees from North to intended direction
 Speed is scalar value from 0 to 255
 */
-void setSpeed(int d, int s) {
+void setSpeed(double d, int s) {
   direction = d;
   speed = s;
-  int x = speed*sin(direction*3.14/180.0);
-  int y = speed*cos(direction*3.14/180.0);
+  int x = s*sin(d*3.14/180.0);
+  int y = s*cos(d*3.14/180.0);
+  Serial.print(x);
+  Serial.print(" ");
+  Serial.println(y);
   
-  if (direction < 180) {
+  if (d > 180) {
     speedA = y;
     speedB = x+y;
+    // speedB = sqrt((x*x)+(y*y));
+    // if (x < 0) speedB *= -1;
   }
   else {
     speedB = y;
     speedA = x+y;
+    // speedA = sqrt((x*x)+(y*y));
+    // if (x < 0) speedA *= -1;
   }
 }
 
@@ -131,7 +142,7 @@ void driveTank() {
   
   analogWrite(enA, abs(speedA));
   analogWrite(enB, abs(speedB));
-  if (speedA > 0) {
+  if (speedA < 0) {
     digitalWrite(in1A, 1);
     digitalWrite(in2A, 0);
   }
@@ -140,7 +151,7 @@ void driveTank() {
     digitalWrite(in2A, 1);
   }
   
-  if (speedB > 0) {
+  if (speedB < 0) {
     digitalWrite(in1B, 0);
     digitalWrite(in2B, 1);
   }
@@ -186,6 +197,15 @@ void driveTankForTime(double seconds) {
   driveTank();
 }
 
+/*
+degrees is how much you want to turn
+radius is the radius of the turn
+s is the speed of the car while in the turn
+*/
+void turnTank(int degrees, double radius, int s) {
+  
+}
+
 void setup() {
   pinMode(in1A, OUTPUT);
   pinMode(in2A, OUTPUT);
@@ -205,7 +225,37 @@ void setup() {
 
 void driveRoutine() {
   setSpeed(0, 100);
-  driveTankForTime(3);
+  driveTankForTime(1);
+  
+  setSpeed(30, 100);
+  driveTankForTime(1);
+  setSpeed(60, 100);
+  driveTankForTime(1);
+  setSpeed(90, 100);
+  driveTankForTime(1);
+  
+  // setSpeed(120, 100);
+  // driveTankForTime(1);
+  // setSpeed(150, 100);
+  // driveTankForTime(1);
+  // setSpeed(180, 100);
+  
+  // setSpeed(210, 100);
+  // driveTankForTime(1);
+  // setSpeed(240, 100);
+  // driveTankForTime(1);
+  // setSpeed(270, 100);
+  // driveTankForTime(1);
+  
+  // setSpeed(300, 100);
+  // driveTankForTime(1);
+  // setSpeed(330, 100);
+  // driveTankForTime(1);
+  // setSpeed(360, 100);
+  
+  
+  driveTankForTime(1);
+  // turnTank(270, 100, 0);
 }
 
 void loop() {
