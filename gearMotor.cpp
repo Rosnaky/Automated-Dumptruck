@@ -12,7 +12,14 @@ int in2A = 8;
 int enA = 6;
 
 int encoderA = 11;
+int countA = 0;
+int prevA = 0;
+
 int encoderB = 10;
+int countB = 0;
+int prevB = 0;
+
+int cycleTime = 1000;
 
 
 int speedA = 0, speedB = 0;
@@ -24,6 +31,9 @@ const int numSlits = 20;
 
 int rxPin = A0;
 int ryPin = A1;
+
+
+int lastCycleTime = 0;
 
 
 void getMaxWheelSpeed() {
@@ -43,7 +53,7 @@ void getMaxWheelSpeed() {
 
   unsigned long current = start;
   
-  while (current - start < 1000) {
+  while (current - start < cycleTime) {
     int nextA = digitalRead(10);
     int nextB = digitalRead(11);
     
@@ -69,13 +79,18 @@ Direction is angle in degrees from North to intended direction
 Speed is scalar value from 0 to 255
 */
 void setSpeed(double d, int s) {
+  if (s == 0) {
+    analogWrite(enA, 0);
+    analogWrite(enB, 0);
+  }
+  
   direction = d;
   speed = s;
   int x = s*sin(d*3.14/180.0);
   int y = s*cos(d*3.14/180.0);
-  Serial.print(x);
-  Serial.print(" ");
-  Serial.println(y);
+  // Serial.print(x);
+  // Serial.print(" ");
+  // Serial.println(y);
   
   if (d > 180) {
     speedA = y;
@@ -107,13 +122,13 @@ void fixSpeeds(int countA, int countB) {
     predictedA = (x+y)/255*maxWheelSpeed;
   }
   
-  Serial.print(countA);
-  Serial.print(" ");
-  Serial.print(predictedA);
-  Serial.print(" ");
-  Serial.print(countB);
-  Serial.print(" ");
-  Serial.println(predictedB);
+  // Serial.print(countA);
+  // Serial.print(" ");
+  // Serial.print(predictedA);
+  // Serial.print(" ");
+  // Serial.print(countB);
+  // Serial.print(" ");
+  // Serial.println(predictedB);
   
   if (abs(countA-predictedA) > error) {
     speedA = (countA-predictedA) > 0 ? speedA -= ceil(abs(countA-predictedA)/5.0/maxWheelSpeed*255.0) :
@@ -130,19 +145,14 @@ void fixSpeeds(int countA, int countB) {
   speedA = min(speedA, 255);
   speedB = min(speedB, 255);
   
-  Serial.print(speedA);
-  Serial.print(" ");
-  Serial.println(speedB);
-  Serial.println("");
+  // Serial.print(speedA);
+  // Serial.print(" ");
+  // Serial.println(speedB);
+  // Serial.println("");
 }
 
 void driveTank() {
   unsigned long start = millis();
-  int countA = 0;
-  int prevA = 0;
-  
-  int countB = 0;
-  int prevB = 0;
   
   analogWrite(enA, abs(speedA));
   analogWrite(enB, abs(speedB));
@@ -164,30 +174,31 @@ void driveTank() {
     digitalWrite(in2B, 0);
   }
   
-  unsigned long current = start;
+  int nextA = digitalRead(encoderA);
+  int nextB = digitalRead(encoderB);
   
-  while (current - start < 1000) {
-    int nextA = digitalRead(encoderA);
-    int nextB = digitalRead(encoderB);
-    
-    if (nextA != prevA) {
-      prevA = nextA;
-      countA += prevA;
-    }
-    if (nextB != prevB) {
-      prevB = nextB;
-      countB += prevB;
-    }
-    
-    
-    current = millis();
+  if (nextA != prevA) {
+    prevA = nextA;
+    countA += prevA;
+  }
+  if (nextB != prevB) {
+    prevB = nextB;
+    countB += prevB;
   }
   
   Serial.print(countA);
   Serial.print(" ");
   Serial.println(countB);
   
-  fixSpeeds(countA, countB);
+  if (millis() - lastCycleTime >= cycleTime) {
+    lastCycleTime = millis();
+    fixSpeeds(countA, countB);
+    
+    countA = 0;
+    countB = 0;
+    prevA = 0;
+    prevB = 0;
+  }
 }
 
 void driveTankForTime(double seconds) {
@@ -198,7 +209,6 @@ void driveTankForTime(double seconds) {
   }
   
   setSpeed(0, 0);
-  driveTank();
 }
 
 /*
@@ -267,6 +277,13 @@ void driveRoutine() {
   // turnTank(270, 100, 0);
 }
 
+ISR (PCINT2_vect) {
+  countB++;
+}
+ISR (PCINT3_vect) {
+  countA++;
+}
+
 void setup() {
   pinMode(in1A, OUTPUT);
   pinMode(in2A, OUTPUT);
@@ -282,7 +299,10 @@ void setup() {
   pinMode(ryPin, INPUT);
 
   Serial.begin(9600);
-   
+  
+  PCICR = 0b10;
+  PCMSK1 |= 0b110;
+  // PCINT3 |= B00100000;
   
   // driveRoutine();
 }
