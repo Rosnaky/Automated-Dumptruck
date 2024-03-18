@@ -1,6 +1,7 @@
 /*
 
 */
+#include <math.h>
 
 int in1B = 13;
 int in2B = 12;
@@ -20,6 +21,9 @@ int speed = 0;
 int maxWheelSpeed = 100;
 
 const int numSlits = 20;
+
+int rxPin = A0;
+int ryPin = A1;
 
 
 void getMaxWheelSpeed() {
@@ -206,21 +210,26 @@ void turnTank(int degrees, double radius, int s) {
   
 }
 
-void setup() {
-  pinMode(in1A, OUTPUT);
-  pinMode(in2A, OUTPUT);
-  pinMode(encoderA, INPUT);
-  pinMode(enA, OUTPUT);
 
-  pinMode(in1B, OUTPUT);
-  pinMode(in2B, OUTPUT);
-  pinMode(encoderB, INPUT);
-  pinMode(enB, OUTPUT);
-
-  Serial.begin(9600);
+void driveJoystick() {
+  float x = analogRead(rxPin)-512;
+  float y = analogRead(ryPin)-512;
   
+  // 724 is max hypotenuse length
+  int s = sqrt(x*x + y*y)/724*255;
+  int d = atan(x/y)/3.14*180;
   
-  driveRoutine();
+  // Serial.print(x);
+  // Serial.print(" ");
+  // Serial.print(y);
+  // Serial.print(" ");
+  // Serial.print(s);
+  // Serial.print(" ");
+  // Serial.println(d);
+  
+  setSpeed(d, s);
+  driveTank();
+  
 }
 
 void driveRoutine() {
@@ -258,9 +267,29 @@ void driveRoutine() {
   // turnTank(270, 100, 0);
 }
 
+void setup() {
+  pinMode(in1A, OUTPUT);
+  pinMode(in2A, OUTPUT);
+  pinMode(encoderA, INPUT);
+  pinMode(enA, OUTPUT);
+
+  pinMode(in1B, OUTPUT);
+  pinMode(in2B, OUTPUT);
+  pinMode(encoderB, INPUT);
+  pinMode(enB, OUTPUT);
+  
+  pinMode(rxPin, INPUT);
+  pinMode(ryPin, INPUT);
+
+  Serial.begin(9600);
+   
+  
+  // driveRoutine();
+}
+
 void loop() {
   
-  
+  driveJoystick();
   // driveTank();
   
 }
