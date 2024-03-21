@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "tank.h"
 
 /**
@@ -76,11 +77,11 @@ void tankFixSpeeds(Tank* t) {
   
   int predicted [2];
   bool index = t->direction < 180;
-  predictedA[!index] = y/255.0*t->maxWheelSpeed;
-  predictedB[index] = (x+y)/255.0*t->maxWheelSpeed;
+  predicted[!index] = y/255.0*t->maxWheelSpeed;
+  predicted[index] = (x+y)/255.0*t->maxWheelSpeed;
   
-  motorCorrectSpeed(t->motors + A, predictedA, t->maxWheelSpeed, error);
-  motorCorrectSpeed(t->motors + B, predictedB, t->maxWheelSpeed, error);
+  motorCorrectSpeed(t->motors + A, predicted[A], t->maxWheelSpeed, error);
+  motorCorrectSpeed(t->motors + B, predicted[B], t->maxWheelSpeed, error);
   
   t->motors[A].speed = max(t->motors[A].speed, -255);
   t->motors[B].speed = max(t->motors[B].speed, -255);
@@ -98,8 +99,8 @@ void tankDrive(Tank* t) {
   
   analogWrite(t->motors[A].en, abs(t->motors[A].speed));
   analogWrite(t->motors[B].en, abs(t->motors[B].speed));
-  motorSetDirection(t->motors + A, t->motors[A].speed >= 0);
-  motorSetDirection(t->motors + B, t->motors[B].speed < 0);
+  motorSetDirection(t->motors + A, (Direction)(t->motors[A].speed >= 0));
+  motorSetDirection(t->motors + B, (Direction)(t->motors[B].speed < 0));
   
   if (millis() - t->lastCycleTime >= cycleTime) {
     t->lastCycleTime = millis();

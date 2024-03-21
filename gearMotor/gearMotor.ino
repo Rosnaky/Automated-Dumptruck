@@ -1,25 +1,7 @@
 #include "tank.h"
 
-Motor motors [] = {
-  {
-    .encoder = { .pin = 11 },
-    .in1 = 9,
-    .in2 = 8,
-    .en = 6,
-  },
-  {
-    .encoder = { .pin = 10 },
-    .in1 = 13,
-    .in2 = 12,
-    .en = 5,
-  },
-};
-
-Tank tank = {
-  .motors = motors,
-  .joystick = { A0, A1 },
-  .maxWheelSpeed = 100,
-}
+// Declared externally in defaults.c because cpp doesn't have designated initializers
+extern Tank tank;
 
 ISR (PCINT2_vect) {
   tank.motors[B].encoder.count++;

@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "motor.h"
 
 /*
@@ -34,8 +35,8 @@ void motorSetDirection(Motor* m, Direction d)
  */
 void motorCorrectSpeed(Motor* m, int predicted, int maxWheelSpeed, int error)
 {
-  if (m->encoder.count-predicted) > error) {
-    m->speed = (m->encoder.count-predicted) > 0 ? m->speed -= ceil(abs(m->encoder.count-predictedA)/5.0/maxWheelSpeed*255.0) :
+  if (m->encoder.count-predicted > error) {
+    m->speed = (m->encoder.count-predicted) > 0 ? m->speed -= ceil(abs(m->encoder.count-predicted)/5.0/maxWheelSpeed*255.0) :
     m->speed += ceil(abs(m->encoder.count-predicted)/5.0/maxWheelSpeed*255.0);
   }
 }

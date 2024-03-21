@@ -9,11 +9,11 @@ typedef struct {
   int in1, in2, en, speed;
 } Motor;
 
-enum Direction {
+typedef enum {
   CLOCKWISE,
   COUNTER_CLOCKWISE,
   MAX_DIRECTION,
-};
+} Direction;
 
 /*
  * @brief Initialize motor pin modes

@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "joystick.h"
 
 void joystickInit(Joystick* j)
