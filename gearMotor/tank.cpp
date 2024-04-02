@@ -49,11 +49,6 @@ void tankCalculateMaxSpeed(Tank* t) {
  * @param s speed
  */
 void tankSetSpeed(Tank* t, double d, int s) {
-  if (s == 0) {
-    analogWrite(t->motors[A].en, 0);
-    analogWrite(t->motors[B].en, 0);
-  }
-
   t->direction = d;
   t->speed = s;
   int x = s*sin(d*3.14/180.0);
