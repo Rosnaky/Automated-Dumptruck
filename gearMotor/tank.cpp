@@ -90,8 +90,6 @@ void tankFixSpeeds(Tank* t) {
  * @param t Pointer to the tank struct
  */
 void tankDrive(Tank* t) {
-  unsigned long start = millis();
-  
   analogWrite(t->motors[A].en, abs(t->motors[A].speed));
   analogWrite(t->motors[B].en, abs(t->motors[B].speed));
   motorSetDirection(t->motors + A, (Direction)(t->motors[A].speed >= 0));
