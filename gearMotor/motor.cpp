@@ -22,8 +22,7 @@ void motorInit(Motor* m)
  */
 void motorSetDirection(Motor* m, Direction d)
 {
-  analogWrite(m->en, 255);
-  digitalWrite(m->in1, ~d);
+  digitalWrite(m->in1, !d);
   digitalWrite(m->in2, d);
 }
 
