@@ -44,10 +44,9 @@ void setup() {
 
 void loop() {
 	m.y = system_adc_read();
-	Serial.printf("Sent %d, %d\r\n", m.x, m.y);
 	if (esp_now_send(server_mac, (unsigned char*)&m, sizeof(Message)))
-		Serial.print("SUCCESS\r\n");
-	else
 		Serial.print("FAILED\r\n");
+	else
+		Serial.print("SUCCESS\r\n");
 	delay(200);
 }
