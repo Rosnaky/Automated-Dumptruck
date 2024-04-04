@@ -31,10 +31,12 @@ void motorInit(Motor* m);
 void motorSetDirection(Motor* m, Direction d);
 
 /*
- * @brief Sets the spin direction of the motor
+ * @brief Corrects speed to make the motor follow a straight line
  *
  * @param m Pointer to the Motor struct
- * @param d Direction enum (either CLOCKWISE or COUNTER_CLOCKWISE)
+ * @param predicted the predicted amount of cycles
+ * @param maxWheelSpeed the maximum wheel speed
+ * @param error the error threshold
  */
 void motorCorrectSpeed(Motor* m, int predicted, int maxWheelSpeed, int error);
 

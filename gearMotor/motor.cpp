@@ -27,15 +27,19 @@ void motorSetDirection(Motor* m, Direction d)
 }
 
 /*
- * @brief Sets the spin direction of the motor
+ * @brief Corrects speed to make the motor follow a straight line
  *
  * @param m Pointer to the Motor struct
- * @param d Direction enum (either CLOCKWISE or COUNTER_CLOCKWISE)
+ * @param predicted the predicted amount of cycles
+ * @param maxWheelSpeed the maximum wheel speed
+ * @param error the error threshold
  */
 void motorCorrectSpeed(Motor* m, int predicted, int maxWheelSpeed, int error)
 {
-  if (m->encoder.count-predicted > error) {
-    m->speed = (m->encoder.count-predicted) > 0 ? m->speed -= ceil(abs(m->encoder.count-predicted)/5.0/maxWheelSpeed*255.0) :
+  if (m->encoder.count-predicted > error)
+    return;
+  if (m->encoder.count-predicted > 0)
+    m->speed -= ceil(abs(m->encoder.count-predicted)/5.0/maxWheelSpeed*255.0);
+  else
     m->speed += ceil(abs(m->encoder.count-predicted)/5.0/maxWheelSpeed*255.0);
-  }
 }
