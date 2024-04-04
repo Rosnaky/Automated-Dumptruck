@@ -46,7 +46,7 @@ void setup()
 	wifi_set_macaddr(STATION_IF, (unsigned char*)&server_mac);
 	web_server_init("ESP WIFI!", "", 6, false);
 	// Initialize esp now
-	if (esp_now_init())
+	if (esp_now_init() == ESP_OK)
 		Serial.println("Error initializing ESP-NOW");
 	Serial.println("The connection works!");
 	// Set role as slave (joystick esp is the controller)

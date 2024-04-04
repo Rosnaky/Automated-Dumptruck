@@ -9,6 +9,8 @@
 #include "web_server.h"
 
 #define DEBUG 1
+
+// Don't print outside of debug mode
 #if !DEBUG
 	#define printf(...) 
 #endif
@@ -140,9 +142,9 @@ void web_server_init(const char* ssid, const char* passwd, uint8_t channel, bool
 
 	wifi_softap_dhcps_start();
 
-	//Serial.print("SOFTAP Status:%d\r\n", wifi_softap_dhcps_status());
-	//Serial.print("Size of ESP8266: %d\r\n", sizeof(apconfig.ssid));
-	//Serial.print("Length of ESP8266: %d\r\n", os_strlen(apconfig.ssid));
+	printf("SOFTAP Status:%d\r\n", wifi_softap_dhcps_status());
+	printf("Size of ESP8266: %d\r\n", sizeof(apconfig.ssid));
+	printf("Length of ESP8266: %d\r\n", os_strlen(apconfig.ssid));
 
 	static struct espconn esp_conn;
 	static esp_tcp esptcp;
