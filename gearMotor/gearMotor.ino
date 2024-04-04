@@ -1,7 +1,9 @@
 #include "tank.h"
 
 // Declared externally in defaults.c because cpp doesn't have designated initializers
-extern Tank tank;
+extern "C" {
+  Tank tank;
+}
 
 // Our ISRs will keep track on pin changes on the encoder inputs
 // and increment the counter when they change
