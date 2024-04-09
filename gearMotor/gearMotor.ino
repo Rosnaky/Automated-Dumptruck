@@ -1,9 +1,7 @@
 #include "tank.h"
 
 // Declared externally in defaults.c because cpp doesn't have designated initializers
-extern "C" {
-  Tank tank;
-}
+extern Tank tank;
 
 // Our ISRs will keep track on pin changes on the encoder inputs
 // and increment the counter when they change
@@ -26,7 +24,27 @@ void setup() {
   PCMSK1 |= 0b110;
 }
 
+typedef struct {
+  long x, y;
+} Message;
+
 void loop() {
-  // Run our joystick drive function in a loop
+  // // Run our joystick drive function in a loop
+  // Message m;
+  // char* p = (char*)&m;
+  // if (Serial.available()) {
+  //   for (int i = 0; i < 8; i++) {
+  //     while (!Serial.available()) {}
+      
+  //     p[i] = Serial.read();
+  //   }
+  // }
+  
+  // Serial.print(m.x);
+  // Serial.print(" ");
+  // Serial.println(m.y);
+  
+  // tankDrive(&tank);
+  
   tankDriveJoystick(&tank);
 }
