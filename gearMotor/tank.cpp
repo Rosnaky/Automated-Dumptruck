@@ -143,8 +143,8 @@ void tankDriveJoystick(Tank* t) {
   // 724 is max hypotenuse length
   int s = sqrt(x*x + y*y)/724*255;
   int d;
-  if (y) d = atan(x/y)/3.14*180;
-  else d = x > 0 ? 90 : 270;
+  if (x) d = atan(y/x)/3.14*180;
+  else d = y > 0 ? 0 : 180;
   
   tankSetSpeed(t, d, s);
   tankDrive(t);
