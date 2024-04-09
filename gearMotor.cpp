@@ -1,55 +1,30 @@
-/*
+#include <Arduino.h>
+#include "tank.h"
 
-*/
-#include <math.h>
+/**
+ * @brief Initialize the tank by setting the pinmodes of the motors and joystick pins 
+ *
+ * @param t Pointer to the tank struct
+ */
+void tankInit(Tank* t)
+{
+  motorInit(t->motors + A);
+  motorInit(t->motors + B);
+  joystickInit(&t->joystick);
+}
 
-int in1B = 13;
-int in2B = 12;
-int enB = 5;
-
-int in1A = 9;
-int in2A = 8;
-int enA = 6;
-
-int encoderA = 11;
-int countA = 0;
-int prevA = 0;
-
-int encoderB = 10;
-int countB = 0;
-int prevB = 0;
-
-int cycleTime = 1000;
-
-
-int speedA = 0, speedB = 0;
-double direction = 0;
-int speed = 0;
-int maxWheelSpeed = 100;
-
-const int numSlits = 20;
-
-int rxPin = A0;
-int ryPin = A1;
-
-
-int lastCycleTime = 0;
-
-
-void getMaxWheelSpeed() {
+/**
+ * @brief Will calculate the conversion factor of how cycles can happen at a speed of 255
+ *
+ * @param t Pointer to the tank struct
+ */
+void tankCalculateMaxSpeed(Tank* t) {
   unsigned long start = millis();
-  int countA = 0;
-  int prevA = 0;
   
-  int countB = 0;
-  int prevB = 0;
-  
-  analogWrite(enA, 255);
-  analogWrite(enB, 255);
-  digitalWrite(in1A, 1);
-  digitalWrite(in2A, 0);
-  digitalWrite(in1B, 0);
-  digitalWrite(in2B, 1);
+  encoderReset(&t->motors[A].encoder);
+  encoderReset(&t->motors[B].encoder);
+  motorSetDirection(t->motors + A, CLOCKWISE);
+  motorSetDirection(t->motors + B, COUNTER_CLOCKWISE);
 
   unsigned long current = start;
   
@@ -57,259 +32,135 @@ void getMaxWheelSpeed() {
     int nextA = digitalRead(10);
     int nextB = digitalRead(11);
     
-    if (nextA != prevA) {
-      prevA = nextA;
-      countA += prevA;
-    }
-    if (nextB != prevB) {
-      prevB = nextB;
-      countB += prevB;
-    }
-    
-    
     current = millis();
   }
   
-  maxWheelSpeed = min(countA, countB);
-  Serial.println(maxWheelSpeed);
-}
-
-/* 
-Direction is angle in degrees from North to intended direction
-Speed is scalar value from 0 to 255
-*/
-void setSpeed(double d, int s) {
-  if (s == 0) {
-    analogWrite(enA, 0);
-    analogWrite(enB, 0);
-  }
-  
-  direction = d;
-  speed = s;
-  int x = s*sin(d*3.14/180.0);
-  int y = s*cos(d*3.14/180.0);
-  // Serial.print(x);
-  // Serial.print(" ");
-  // Serial.println(y);
-  
-  if (d > 180) {
-    speedA = y;
-    speedB = x+y;
-    // speedB = sqrt((x*x)+(y*y));
-    // if (x < 0) speedB *= -1;
-  }
-  else {
-    speedB = y;
-    speedA = x+y;
-    // speedA = sqrt((x*x)+(y*y));
-    // if (x < 0) speedA *= -1;
-  }
-}
-
-void fixSpeeds(int countA, int countB) {
-  int error = 3;
-  
-  int x = speed*sin(direction*3.14/180.0);
-  int y = speed*cos(direction*3.14/180.0);
-  
-  int predictedA, predictedB;
-  if (direction < 180) {
-    predictedA = y/255.0*maxWheelSpeed;
-    predictedB = (x+y)/255.0*maxWheelSpeed;
-  }
-  else {
-    predictedB = y/255*maxWheelSpeed;
-    predictedA = (x+y)/255*maxWheelSpeed;
-  }
-  
-  // Serial.print(countA);
-  // Serial.print(" ");
-  // Serial.print(predictedA);
-  // Serial.print(" ");
-  // Serial.print(countB);
-  // Serial.print(" ");
-  // Serial.println(predictedB);
-  
-  if (abs(countA-predictedA) > error) {
-    speedA = (countA-predictedA) > 0 ? speedA -= ceil(abs(countA-predictedA)/5.0/maxWheelSpeed*255.0) :
-    speedA += ceil(abs(countA-predictedA)/5.0/maxWheelSpeed*255.0);
-  }
-  if (abs(countB-predictedB) > error) {
-    speedB = (countB-predictedB) > 0 ? speedB -= ceil(abs(countB-predictedB)/5.0/maxWheelSpeed*255.0) :
-    speedB += ceil(abs(countB-predictedB)/5.0/maxWheelSpeed*255.0);
-  }
-  
-  
-  speedA = max(speedA, -255);
-  speedB = max(speedB, -255);
-  speedA = min(speedA, 255);
-  speedB = min(speedB, 255);
-  
-  // Serial.print(speedA);
-  // Serial.print(" ");
-  // Serial.println(speedB);
-  // Serial.println("");
-}
-
-void driveTank() {
-  unsigned long start = millis();
-  
-  analogWrite(enA, abs(speedA));
-  analogWrite(enB, abs(speedB));
-  if (speedA < 0) {
-    digitalWrite(in1A, 1);
-    digitalWrite(in2A, 0);
-  }
-  else {
-    digitalWrite(in1A, 0);
-    digitalWrite(in2A, 1);
-  }
-  
-  if (speedB < 0) {
-    digitalWrite(in1B, 0);
-    digitalWrite(in2B, 1);
-  }
-  else {
-    digitalWrite(in1B, 1);
-    digitalWrite(in2B, 0);
-  }
-  
-  int nextA = digitalRead(encoderA);
-  int nextB = digitalRead(encoderB);
-  
-  if (nextA != prevA) {
-    prevA = nextA;
-    countA += prevA;
-  }
-  if (nextB != prevB) {
-    prevB = nextB;
-    countB += prevB;
-  }
-  
-  Serial.print(countA);
-  Serial.print(" ");
-  Serial.println(countB);
-  
-  if (millis() - lastCycleTime >= cycleTime) {
-    lastCycleTime = millis();
-    fixSpeeds(countA, countB);
-    
-    countA = 0;
-    countB = 0;
-    prevA = 0;
-    prevB = 0;
-  }
-}
-
-void driveTankForTime(double seconds) {
-  unsigned long start = millis();
-  
-  while (millis()-start < seconds*1000) {
-    driveTank();
-  }
-  
-  setSpeed(0, 0);
+  t->maxWheelSpeed = min(t->motors[A].encoder.count, t->motors[B].encoder.count);
+  encoderReset(&t->motors[A].encoder);
+  encoderReset(&t->motors[B].encoder);
 }
 
 /*
-degrees is how much you want to turn
-radius is the radius of the turn
-s is the speed of the car while in the turn
-*/
-void turnTank(int degrees, double radius, int s) {
+ * @brief Direction is angle in degrees from North to intended direction
+ *        Speed is scalar value from 0 to 255
+ *
+ * @param t Pointer to the tank struct
+ * @param d direction
+ * @param s speed
+ */
+void tankSetSpeed(Tank* t, double d, int s) {
+  t->direction = d;
+  t->speed = s;
+  int x = s*sin(d*3.14/180.0);
+  int y = s*cos(d*3.14/180.0);
+
+  bool index = d > 180;
+  t->motors[!index].speed = y;
+  t->motors[index].speed = x+y;
+}
+
+/*
+ * @brief Adjusts speeds to match direction
+ * 
+ * @param t Pointer to the tank struct
+ */
+void tankFixSpeeds(Tank* t) {
+  int error = 3;
+  
+  int x = t->speed*sin(t->direction*3.14/180.0);
+  int y = t->speed*cos(t->direction*3.14/180.0);
+  
+  int predicted [2];
+  bool index = t->direction < 180;
+  predicted[!index] = y/255.0*t->maxWheelSpeed;
+  predicted[index] = (x+y)/255.0*t->maxWheelSpeed;
+  
+  motorCorrectSpeed(t->motors + A, predicted[A], t->maxWheelSpeed, error);
+  motorCorrectSpeed(t->motors + B, predicted[B], t->maxWheelSpeed, error);
+  
+  t->motors[A].speed = max(t->motors[A].speed, -255);
+  t->motors[B].speed = max(t->motors[B].speed, -255);
+  t->motors[A].speed = min(t->motors[A].speed, 255);
+  t->motors[B].speed = min(t->motors[B].speed, 255);
+}
+
+/*
+ * @brief Drives the tank forward adjusting speeds as needed to maintain a straight line
+ *
+ * @param t Pointer to the tank struct
+ */
+void tankDrive(Tank* t) {
+  analogWrite(t->motors[A].en, abs(t->motors[A].speed));
+  analogWrite(t->motors[B].en, abs(t->motors[B].speed));
+  motorSetDirection(t->motors + A, (Direction)(t->motors[A].speed >= 0));
+  motorSetDirection(t->motors + B, (Direction)(t->motors[B].speed < 0));
+  
+  if (millis() - t->lastCycleTime >= cycleTime) {
+    t->lastCycleTime = millis();
+    tankFixSpeeds(t);
+    
+    encoderReset(&t->motors[A].encoder);
+    encoderReset(&t->motors[B].encoder);
+  }
+}
+
+/*
+ * @brief Runs tankDrive in a loop for the given time
+ *
+ * @param t Pointer to the tank struct
+ */
+void tankDriveForTime(Tank* t, double seconds) {
+  unsigned long start = millis();
+  
+  while (millis()-start < seconds*1000) {
+    tankDrive(t);
+  }
+  
+  tankSetSpeed(t, 0, 0);
+}
+
+/*
+ * @brief Turns tank in an arc given parameters
+ *
+ * @param t Pointer to the tank struct
+ * @param degrees is how much you want to turn
+ * @param radius is the radius of the turn
+ * @param s is the speed of the car while in the turn
+ */
+void turnTank(Tank* t, int degrees, double radius, int s) {
   
 }
 
-
-void driveJoystick() {
-  float x = analogRead(rxPin)-512;
-  float y = analogRead(ryPin)-512;
+/*
+ * @brief Turns tank using the output from the joystick
+ *
+ * @param t Pointer to the tank struct
+ */
+void tankDriveJoystick(Tank* t) {
+  float x = analogRead(t->joystick.rxPin)-512;
+  float y = analogRead(t->joystick.ryPin)-512;
   
   // 724 is max hypotenuse length
   int s = sqrt(x*x + y*y)/724*255;
-  int d = atan(x/y)/3.14*180;
+  int d;
+  if (x) d = atan(y/x)/3.14*180;
+  else d = y > 0 ? 0 : 180;
   
-  // Serial.print(x);
-  // Serial.print(" ");
-  // Serial.print(y);
-  // Serial.print(" ");
-  // Serial.print(s);
-  // Serial.print(" ");
-  // Serial.println(d);
-  
-  setSpeed(d, s);
-  driveTank();
-  
+  tankSetSpeed(t, d, s);
+  tankDrive(t);
 }
 
-void driveRoutine() {
-  setSpeed(0, 100);
-  driveTankForTime(1);
+void tankDriveRoutine(Tank* t) {
+  tankSetSpeed(t, 0, 100);
+  tankDriveForTime(t, 1);
   
-  setSpeed(30, 100);
-  driveTankForTime(1);
-  setSpeed(60, 100);
-  driveTankForTime(1);
-  setSpeed(90, 100);
-  driveTankForTime(1);
+  tankSetSpeed(t, 30, 100);
+  tankDriveForTime(t, 1);
+  tankSetSpeed(t, 60, 100);
+  tankDriveForTime(t, 1);
+  tankSetSpeed(t, 90, 100);
+  tankDriveForTime(t, 1);
   
-  // setSpeed(120, 100);
-  // driveTankForTime(1);
-  // setSpeed(150, 100);
-  // driveTankForTime(1);
-  // setSpeed(180, 100);
-  
-  // setSpeed(210, 100);
-  // driveTankForTime(1);
-  // setSpeed(240, 100);
-  // driveTankForTime(1);
-  // setSpeed(270, 100);
-  // driveTankForTime(1);
-  
-  // setSpeed(300, 100);
-  // driveTankForTime(1);
-  // setSpeed(330, 100);
-  // driveTankForTime(1);
-  // setSpeed(360, 100);
-  
-  
-  driveTankForTime(1);
+  tankDriveForTime(t, 1);
   // turnTank(270, 100, 0);
-}
-
-ISR (PCINT2_vect) {
-  countB++;
-}
-ISR (PCINT3_vect) {
-  countA++;
-}
-
-void setup() {
-  pinMode(in1A, OUTPUT);
-  pinMode(in2A, OUTPUT);
-  pinMode(encoderA, INPUT);
-  pinMode(enA, OUTPUT);
-
-  pinMode(in1B, OUTPUT);
-  pinMode(in2B, OUTPUT);
-  pinMode(encoderB, INPUT);
-  pinMode(enB, OUTPUT);
-  
-  pinMode(rxPin, INPUT);
-  pinMode(ryPin, INPUT);
-
-  Serial.begin(9600);
-  
-  PCICR = 0b10;
-  PCMSK1 |= 0b110;
-  // PCINT3 |= B00100000;
-  
-  // driveRoutine();
-}
-
-void loop() {
-  
-  driveJoystick();
-  // driveTank();
-  
 }
