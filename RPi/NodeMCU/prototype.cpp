@@ -55,7 +55,21 @@ void loop() {
     Adafruit_MQTT_Subscribe *subscription; 
     while (subscription = mqtt.readSubscription()) {
         if (subscription == &esp8266_led) {
-            
+            Serial.print(F("Got: ")); 
+            Serial.println(message); 
+                // Check if the message was ON, OFF, or TOGGLE. 
+            if (strncmp(message, "ON", 2) == 0) { 
+                // Turn the LED on. 
+                digitalWrite(LED_PIN, HIGH); 
+            } 
+            else if (strncmp(message, "OFF", 3) == 0) { 
+                // Turn the LED off. 
+                digitalWrite(LED_PIN, LOW); 
+            } 
+            else if (strncmp(message, "TOGGLE", 6) == 0) { 
+                // Toggle the LED. 
+                digitalWrite(LED_PIN, !digitalRead(LED_PIN)); 
+            } 
         }
     }
 
