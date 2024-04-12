@@ -98,7 +98,7 @@ void MQTT_connect() {
       delay(5000);  // wait 5 seconds 
       retries--; 
       if (retries == 0) { 
-        System.out.println("Connection unsuccessful");
+        System.out.println("Connection unsuccessful. Reset NODEMCU");
         while (1);
       } 
  } 
