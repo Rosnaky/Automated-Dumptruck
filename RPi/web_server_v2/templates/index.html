@@ -5,14 +5,14 @@
 	</head>
 	<body>
 		<h1>Joystick</h1>
-		<button hx-trigger="click, keyup[key=='ArrowUp'] from:body"
-				hx-swap="none" hx-put="/move-forward">Move forward</button>
-		<button hx-trigger="click, keyup[key=='ArrowDown'] from:body"
-				hx-swap="none" hx-put="/move-backward">Move backward</button>
+		<button hx-trigger="click, keydown[key=='ArrowUp'] from:body"
+			hx-swap="outerHTML" hx-put="/move-forward">Move forward</button>
+		<button hx-trigger="click, keydown[key=='ArrowDown'] from:body"
+			hx-swap="outerHTML" hx-put="/move-backward">Move backward</button>
 		<br>
-		<button hx-trigger="click, keyup[key=='ArrowLeft'] from:body"
-		        hx-swap="none" hx-put="/move-left">Move left</button>
-		<button hx-trigger="click, keyup[key=='ArrowRight'] from:body"
-		        hx-swap="none" hx-put="/move-right">Move right</button>
+		<button hx-trigger="click, keydown[key=='ArrowLeft'] from:body"
+			hx-swap="outerHTML" hx-put="/move-left">Move left</button>
+		<button hx-trigger="click, keydown[key=='ArrowRight'] from:body"
+			hx-swap="outerHTML" hx-put="/move-right">Move right</button>
 	</body>
 </html>
