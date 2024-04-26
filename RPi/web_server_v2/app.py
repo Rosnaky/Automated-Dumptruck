@@ -1,14 +1,16 @@
 # app.py
 
-import wiringpi
+# import wiringpi
 import os
 from flask import Flask, render_template, request, redirect, session, Response
 
 app = Flask(__name__)
- 
+
+
 @app.route('/')
 def controls():
     return render_template('index.html')
+
 
 def get_file(filename):  # pragma: no cover
     try:
@@ -20,6 +22,7 @@ def get_file(filename):  # pragma: no cover
         return open(filename).read()
     except IOError as exc:
         return str(exc)
+
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -36,41 +39,41 @@ def get_resource(path):  # pragma: no cover
     return Response(content, mimetype=mimetype)
 
 
-UP = 0; DOWN = 1; LEFT = 2; RIGHT = 0;
+FORWARD = 0
+BACKWARD = 1
+LEFT = 2
+RIGHT = 3
 states = [False, False, False, False]
+dir_name = ["forward", "backward", "left", "right"]
+
+
+def move(dir):
+    states[dir] = not states[dir]
+    if states[dir]:
+        return render_template('button.html', eventType='keyup', key='ArrowUp', dir=dir_name[dir])
+    else:
+        return render_template('button.html', eventType='keydown', key='ArrowUp', dir=dir_name[dir])
 
 
 @app.route('/move-forward', methods=['PUT'])
 def move_forward():
-    states[0] = not states[0]
-    print("forward")
-    if states[0]: 
-        return render_template('buttons.html', eventType='keyUp', key='ArrowUp', dir='forward')
-    else:
-        return render_template('buttons.html', eventType='keyUp', key='ArrowUp', dir='forward')
+    return move(FORWARD)
 
 
 @app.route('/move-backward', methods=['PUT'])
 def move_backward():
-    states[1] = not states[1]
-    print("backward")
-    return Response('', mimetype='text/txt')
+    return move(BACKWARD)
 
 
 @app.route('/move-left', methods=['PUT'])
 def move_left():
-    print("left")
-    return Response('', mimetype='text/txt')
+    return move(LEFT)
 
 
 @app.route('/move-right', methods=['PUT'])
 def move_right():
-    print("right")
-    return Response('', mimetype='text/txt')
-
+    return move(RIGHT)
 
 
 if __name__ == '__main__':
     app.run(debug=True, port=80, host="0.0.0.0")
-    
-
