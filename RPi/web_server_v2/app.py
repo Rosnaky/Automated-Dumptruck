@@ -1,6 +1,6 @@
 # app.py
 
-# import wiringpi
+import RPi.GPIO as GPIO
 import os
 from flask import Flask, render_template, request, redirect, session, Response
 
@@ -45,14 +45,133 @@ LEFT = 2
 RIGHT = 3
 states = [False, False, False, False]
 dir_name = ["forward", "backward", "left", "right"]
+key_dir_name = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]
 
+motor_states = [ 
+    # FORWARD FALSE
+    [
+        # BACKWARD FALSE
+        [
+            # LEFT FALSE
+            [
+                # RIGHT FALSE
+                [
+                   0, 0, 0, 0
+                ],
+                # RIGHT TRUE
+                [
+                   0, 0, 0, 0
+                ],
+            ],
+            # LEFT TRUE
+            [
+                # RIGHT FALSE
+                [
+                   0, 0, 0, 0
+                ],
+                # RIGHT TRUE
+                [
+                   0, 0, 0, 0
+                ],
+            ],
+        ],
+        # BACKWARD TRUE
+        [
+            # LEFT FALSE
+            [
+                # RIGHT FALSE
+                [
+                   0, 1, 0, 1
+                ],
+                # RIGHT TRUE
+                [
+                   0, 1, 0, 0
+                ],
+            ],
+            # LEFT TRUE
+            [
+                # RIGHT FALSE
+                [
+                   0, 0, 0, 1
+                ],
+                # RIGHT TRUE
+                [
+                   0, 1, 0, 1
+                ],
+            ],
+        ],
+    ],
+    # FORWARD TRUE
+    [
+        # BACKWARD FALSE
+        [
+            # LEFT FALSE
+            [
+                # RIGHT FALSE
+                [
+                   1, 0, 1, 0
+                ],
+                # RIGHT TRUE
+                [
+                   1, 0, 0, 0
+                ],
+            ],
+            # LEFT TRUE
+            [
+                # RIGHT FALSE
+                [
+                   0, 0, 1, 0
+                ],
+                # RIGHT TRUE
+                [
+                   1, 0, 1, 0
+                ],
+            ],
+        ],
+        # BACKWARD TRUE
+        [
+            # LEFT FALSE
+            [
+                # RIGHT FALSE
+                [
+                   0, 0, 0, 0
+                ],
+                # RIGHT TRUE
+                [
+                   0, 0, 0, 0
+                ],
+            ],
+            # LEFT TRUE
+            [
+                # RIGHT FALSE
+                [
+                   0, 0, 0, 0
+                ],
+                # RIGHT TRUE
+                [
+                   0, 0, 0, 0
+                ],
+            ],
+        ],
+    ],
+]
 
 def move(dir):
     states[dir] = not states[dir]
+
+    state = motor_states[int(states[FORWARD])][int(states[BACKWARD])][int(states[LEFT])][int(states[RIGHT])]
+
+    GPIO.output(motors[0].in1, state[0])
+    GPIO.output(motors[0].in2, state[1])
+    GPIO.output(motors[1].in1, state[2])
+    GPIO.output(motors[1].in2, state[3])
+    print(states)
+    print(state)
     if states[dir]:
-        return render_template('button.html', eventType='keyup', key='ArrowUp', dir=dir_name[dir])
+        return render_template('button.html', eventType='keyup', key=key_dir_name[dir], dir=dir_name[dir])
     else:
-        return render_template('button.html', eventType='keydown', key='ArrowUp', dir=dir_name[dir])
+        return render_template('button.html', eventType='keydown', key=key_dir_name[dir], dir=dir_name[dir])
+
 
 
 @app.route('/move-forward', methods=['PUT'])
@@ -75,5 +194,50 @@ def move_right():
     return move(RIGHT)
 
 
+class Arrows:
+    def __init__(self, forward, backward, left, right):
+        self.forward = forward
+        self.backward = backward
+        self.left = left
+        self.right = right
+
+    def setup(self):
+        pass
+
+
+class Motor:
+    
+    def __init__(self, en, in1, in2):
+        self.en = en
+        self.in1 = in1
+        self.in2 = in2
+
+    def setup(self):
+        GPIO.setup(self.en, GPIO.OUT)
+        self.PWM = GPIO.PWM(self.en, 100)
+        self.PWM.start(0)
+        self.PWM.ChangeDutyCycle(100)
+
+        GPIO.setup(self.in1, GPIO.OUT)
+        GPIO.setup(self.in2, GPIO.OUT)
+        
+
+        #GPIO.output(self.in1, 1)
+
+
+
+motors = [Motor(19, 21, 23), Motor(32, 24, 26)]
+
+def setup():
+    
+    GPIO.setmode(GPIO.BOARD)
+    
+    for m in motors:
+        m.setup()
+
+
 if __name__ == '__main__':
-    app.run(debug=True, port=80, host="0.0.0.0")
+    setup()
+
+
+    app.run(debug=True, port=443, host="0.0.0.0")

@@ -1,4 +1,4 @@
 {% block button %}
 <button hx-trigger="click, {{ eventType  }}[key=='{{ key }}'] once from:body"
-	hx-swap="outerHTML" hx-put="/move-{{ dir }}">Move forward</button>
+	hx-swap="outerHTML" hx-put="/move-{{ dir }}">Move {{ dir }}</button>
 {% endblock %}
