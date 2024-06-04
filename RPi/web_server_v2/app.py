@@ -226,7 +226,7 @@ class Motor:
 
 
 
-motors = [Motor(19, 21, 23), Motor(32, 24, 26)]
+motors = [Motor(19, 21, 23), Motor(32, 26, 24)]
 
 def setup():
     
