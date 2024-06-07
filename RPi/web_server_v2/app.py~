@@ -262,12 +262,13 @@ class Sensor:
 
 
         print(GPIO.input(self.echo))
-        while GPIO.input(self.echo) == 0:
-            start_time = time.time()
-        while GPIO.input(self.echo) == 1:
-            stop_time = time.time()
+        #while GPIO.input(self.echo) == 0:
+        #    start_time = time.time()
+        #while GPIO.input(self.echo) == 1:
+        #    stop_time = time.time()
 
-        return 1000 * stop_time - start_time
+        #return stop_time - start_time
+        return
 
 
 
@@ -276,6 +277,7 @@ sensors = [Sensor(11, 12)]
 
 def setup():
     
+    GPIO.cleanup()
     GPIO.setmode(GPIO.BOARD)
     #GPIO.setmode(GPIO.BCM)
     
@@ -294,4 +296,3 @@ if __name__ == '__main__':
         print()
 
     app.run(debug=True, port=80, host="0.0.0.0")
-    GPIO.cleanup()
