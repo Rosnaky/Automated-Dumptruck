@@ -14,6 +14,7 @@
 			hx-swap="outerHTML" hx-put="/move-left">Move left</button>
 		<button hx-trigger="click, keydown[key=='ArrowRight'] from:body"
 			hx-swap="outerHTML" hx-put="/move-right">Move right</button>
-		<img src="{{ url_for('video_feed') }}">
+		<br/>
+		<img src="/video_feed">
 	</body>
 </html>

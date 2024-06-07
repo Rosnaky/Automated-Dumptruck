@@ -1,7 +1,7 @@
 import io
 from PIL import Image
 import select
-import v4l2capture
+import v4l2py
 from base_camera import BaseCamera
 
 
@@ -12,7 +12,7 @@ class Camera(BaseCamera):
 
     @staticmethod
     def frames():
-        video = v4l2capture.Video_device(Camera.video_source)
+        with v4l2py.Device.from_id(0) as cam:
         # Suggest an image size. The device may choose and return another if unsupported
         size_x = 640
         size_y = 480

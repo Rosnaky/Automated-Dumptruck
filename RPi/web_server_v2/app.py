@@ -3,8 +3,8 @@
 import RPi.GPIO as GPIO
 import os
 from flask import Flask, render_template, request, redirect, session, Response
-from camera import Camera
-
+from linuxpy.video.device import Device, VideoCapture
+import time
 app = Flask(__name__)
 
 
@@ -194,17 +194,20 @@ def move_left():
 def move_right():
     return move(RIGHT)
 
-def gen(camera):
+def gen():
     """Video streaming generator function."""
-    yield b'--frame\r\n'
-    while True:
-        frame = camera.get_frame()
-        yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
+    with Device("/dev/video0") as cam:
+        capture = VideoCapture(cam)
+        capture.set_format(640, 480, "MJPG")
+        with capture:
+            for frame in capture:
+                yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame.data + b"\r\n"
 
 @app.route('/video_feed')
 def video_feed():
+    print("test dnsajdnsjnsdajkadsk")
     """Video streaming route. Put this in the src attribute of an img tag."""
-    return Response(gen(Camera()),
+    return Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
@@ -240,7 +243,7 @@ class Motor:
 
 
 
-motors = [Motor(19, 21, 23), Motor(32, 26, 24)]
+motors = [Motor(19, 23, 21), Motor(32, 24, 26)]
 
 def setup():
     
