@@ -61,21 +61,21 @@ motor_states = [
                 ],
                 # RIGHT TRUE
                 [
-                   0, 0, 0, 0
+                   1, 0, 0, 0
                 ],
             ],
             # LEFT TRUE
             [
                 # RIGHT FALSE
                 [
-                   0, 0, 0, 0
+                   0, 0, 1, 0
                 ],
                 # RIGHT TRUE
                 [
                    0, 0, 0, 0
                 ],
             ],
-        ],
+       ],
         # BACKWARD TRUE
         [
             # LEFT FALSE
