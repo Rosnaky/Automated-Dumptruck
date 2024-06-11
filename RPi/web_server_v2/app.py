@@ -241,6 +241,27 @@ class Motor:
 
         #GPIO.output(self.in1, 1)
 
+class UltraSonicSensor:
+    def __init__(self, trig, echo):
+        self.trig = trig
+        self.echo = echo
+
+    def setup(self):
+        GPIO.setup(trig, GPIO.OUT)
+        GPIO.setup(echo, GPIO.IN)
+
+    def read(self):
+        GPIO.output(self.trig, True)
+        time.sleep(0.00001)
+        GPUO.output(self.trig, False)
+
+        while GPIO.input(self.echo) == 0:
+            start_time = time.time()
+        while GPIO.input(self.echo) == 1:
+            stop_time = time.time()
+
+        return stop_time - start_time
+
 
 
 motors = [Motor(19, 23, 21), Motor(32, 24, 26)]
