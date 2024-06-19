@@ -193,11 +193,16 @@ def move_right():
     return move(RIGHT)
 
 automate = False
-@app.route('/automate', methods=['GET'])
+@app.route('/automate', methods=['PUT'])
 def automate():
     automate = True
     print("Automated mode turned on")
-    return render_template('auto.html')
+    return Response("<button hx-trigger=\"click\" style=\"font-size: 20px;\" hx-swap=\"outerHTML\" hx-put=\"/manual\">Manual</button>", mimetype=html)
+
+@app.route('/manual', methods=['PUT'])
+def manual():
+    automate = False
+    return Response("<button hx-trigger=\"click\" style=\"font-size: 20px;\" hx-swap=\"outerHTML\" hx-put=\"/automate\">Automate</button>", mimetype=html)
 
 def gen():
     """Video streaming generator function."""
