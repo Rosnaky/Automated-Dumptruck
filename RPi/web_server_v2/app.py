@@ -2,9 +2,11 @@
 
 import RPi.GPIO as GPIO
 import os
+from threading import Thread
 from flask import Flask, render_template, request, redirect, session, Response
 from linuxpy.video.device import Device, VideoCapture
 import time
+import math
 app = Flask(__name__)
 
 
@@ -161,11 +163,7 @@ def move(dir):
     states[dir] = not states[dir]
 
     state = motor_states[int(states[FORWARD])][int(states[BACKWARD])][int(states[LEFT])][int(states[RIGHT])]
-
-    GPIO.output(motors[0].in1, state[0])
-    GPIO.output(motors[0].in2, state[1])
-    GPIO.output(motors[1].in1, state[2])
-    GPIO.output(motors[1].in2, state[3])
+    setMotors(state)
     print(states)
     print(state)
     if states[dir]:
@@ -198,6 +196,7 @@ automate = False
 @app.route('/automate', methods=['GET'])
 def automate():
     automate = True
+    print("Automated mode turned on")
     return render_template('auto.html')
 
 def gen():
@@ -234,17 +233,37 @@ class Motor:
         self.in1 = in1
         self.in2 = in2
 
+    def setSpeed(self, speed):
+        self.PWM.ChangeDutyCycle(speed)
+
     def setup(self):
         GPIO.setup(self.en, GPIO.OUT)
         self.PWM = GPIO.PWM(self.en, 100)
         self.PWM.start(0)
-        self.PWM.ChangeDutyCycle(100)
+        #self.PWM.ChangeDutyCycle(100)
+        self.setSpeed(100)
 
         GPIO.setup(self.in1, GPIO.OUT)
         GPIO.setup(self.in2, GPIO.OUT)
         
 
         #GPIO.output(self.in1, 1)
+
+class Record:
+    def __init__(self):
+        self.history = []
+        self.average = 0
+
+    def add(self, value):
+        self.history.insert(0, value)
+        self.average = (self.average*(len(self.history)-1)+value)/len(self.history)
+        if (len(self.history) > 100):
+            temp = self.history.pop() 
+            self.average =(self.average*(len(self.history)+1)-temp)/len(self.history)
+
+    def reset(self, value):
+        self.average = value
+        self.history = [value]*100
 
 class Sensor:
     def __init__(self, trig, echo):
@@ -257,22 +276,126 @@ class Sensor:
 
     def read(self):
         GPIO.output(self.trig, True)
-        time.sleep(2)
+        time.sleep(0.00001)
         GPIO.output(self.trig, False)
 
 
-        print(GPIO.input(self.echo))
+        stop_time = start_time = time_out = time.time()
         while GPIO.input(self.echo) == 0:
             start_time = time.time()
         while GPIO.input(self.echo) == 1:
             stop_time = time.time()
 
-        return 1000 * stop_time - start_time
+        return 34300 * (stop_time - start_time)/2
 
 
 
 motors = [Motor(19, 23, 21), Motor(32, 24, 26)]
-sensors = [Sensor(11, 12)]
+sensors = [Sensor(12, 11), Sensor(5, 3)]
+
+def setMotors(state, left_speed=100, right_speed=100):
+    GPIO.output(motors[0].in1, state[0])
+    GPIO.output(motors[0].in2, state[1])
+    GPIO.output(motors[1].in1, state[2])
+    GPIO.output(motors[1].in2, state[3])
+
+    motors[0].setSpeed(min(100, left_speed))
+    motors[1].setSpeed(min(100, right_speed))
+
+
+def readSensors(sensors, delay=0.01):
+    readings = [0]*len(sensors)
+    for i in range(len(sensors)):
+        readings[i] = sensors[i].read()
+        time.sleep(delay)
+
+    return readings
+
+
+
+distance_record = Record()
+angle_record = Record()
+
+def automation(angle_error=3, distance_error=4, target=50, delay=0.05, total_max_angle=30, door_threshold=10):
+    
+    while True:
+        if automate == True:
+            readings = readSensors(sensors, delay)
+
+            offset = readings[0]-readings[1]
+            
+            angle = math.atan(offset/45)   
+            
+            actual_distance = math.sin(math.pi/2-abs(angle))*(readings[0]+readings[1])/2
+            #actual_distance = math.sin(math.pi/2-abs(angle))*(readings[0])/2
+
+            distance_record.add(actual_distance) 
+
+            max_angle = total_max_angle*(abs(actual_distance-target)/80)
+
+            print(distance_record.average, readings[0], readings[1], actual_distance, angle/3.14*180,  max_angle)
+
+            correction_speed = 100
+            correction_speed_angle = 100
+            
+            if actual_distance-target != 0:
+                correction_speed = max(0, min(100, 100/abs(actual_distance-target) + 30))
+            if offset != 0:
+                correction_speed_angle = max(0, 80/abs(offset)+30-40*(angle*180/math.pi)/total_max_angle)
+           
+            #print(readings[0], readings[1], offset, correction_speed)
+
+            
+            if readings[0] < 800 and math.sin(math.pi/2-abs(angle))*readings[0] - distance_record.average > door_threshold:
+                #setMotors([0,0,0,0])
+                #time.sleep(3)
+                #readings = readSensors(sensors, delay)
+                #if (readings[0] - distance_record.average > door_threshold):
+                setMotors([1,0,1,0], left_speed=90)
+                #while readings[1] < 800 and readings[1] - distance_record.average > door_threshold:
+                 #   readings = readSensors(sensors, delay)
+
+                time.sleep(5)
+
+                setMotors([0,0,0,0])
+                time.sleep(20)
+
+                setMotors([1,0,1,0], left_speed=90)
+                time.sleep(8)
+
+                readings = readSensors(sensors, delay)
+
+                offset = readings[0]-readings[1]
+        
+                angle = math.atan(offset/45)   
+            
+                actual_distance = math.sin(math.pi/2-abs(angle))*(readings[0]+readings[1])/2
+
+                distance_record.reset(actual_distance)
+
+
+            elif actual_distance-target > distance_error:
+                if angle/math.pi*180 > -max_angle:
+                    setMotors([1,0,1,0], right_speed=correction_speed)
+                elif angle/math.pi*180 + angle_error < -max_angle:
+                    setMotors([1,0,1,0], left_speed=correction_speed)
+
+            elif actual_distance-target < -distance_error:
+                if angle/math.pi*180 < max_angle:
+                    setMotors([1,0,1,0], left_speed=correction_speed)
+                elif angle/math.pi*180 - angle_error > max_angle:
+                    setMotors([1,0,1,0], right_speed=correction_speed) 
+
+            elif offset < -angle_error:
+                setMotors([1,0,1,0], left_speed=correction_speed_angle)
+            elif offset > angle_error:
+                setMotors([1,0,1,0], right_speed=correction_speed_angle)
+            else:
+                setMotors([1,0,1,0])
+        else:
+            time.sleep(0.2)
+
+
 
 def setup():
     
@@ -287,11 +410,11 @@ def setup():
 
 if __name__ == '__main__':
     setup()
+    automate = True
+    #automation()
 
-    while True:
-        for s in sensors:
-            print(s.read())
-        print()
+    thread = Thread(target = automation, args = {})
+    thread.start()
 
     app.run(debug=True, port=80, host="0.0.0.0")
     GPIO.cleanup()
