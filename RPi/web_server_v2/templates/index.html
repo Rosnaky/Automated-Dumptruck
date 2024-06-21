@@ -4,6 +4,8 @@
 		<title>Automated Dumptruck</title>
 	</head>
 	<body>
+		<h1>Sensors</h1>
+		<p hx-trigger="every 1s" hx-swap="outerHTML" hx-put="/sensors"></p>
 		<h1>Video Feed</h1>
 		<img src="/video_feed">
 		<br/>
@@ -20,5 +22,6 @@
 			hx-swap="outerHTML" hx-put="/move-left">Move left</button>
 		<button hx-trigger="click, keydown[key=='ArrowRight'] from:body"
 			hx-swap="outerHTML" hx-put="/move-right">Move right</button>
+		
 	</body>
 </html>
